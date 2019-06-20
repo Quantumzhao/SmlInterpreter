@@ -17,14 +17,12 @@ namespace SmlInterpreter
 
 		public static File ParseSource(string[] source)
 		{
-			//for (int i = 0; i < source.Length; i++)
-			//{
-			//	SyntaxMarkUp.Produce(Parse.Segregate(source[i]), i);
-			//}
+			for (int i = 0; i < source.Length; i++)
+			{
+				SyntaxMarkUp.Produce(Parse.Segregate(source[i]), i);
+			}
 
-			//return Reconstruct(SyntaxMarkUp.Group.Current);
-
-
+			return Reconstruct(SyntaxMarkUp.Group.Current);
 		}
 
 
