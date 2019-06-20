@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.352
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmlInterpreter", "SmlInterpreter\SmlInterpreter.csproj", "{2E38816D-2782-450A-B035-E08AA0688592}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2E38816D-2782-450A-B035-E08AA0688592}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E38816D-2782-450A-B035-E08AA0688592}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E38816D-2782-450A-B035-E08AA0688592}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E38816D-2782-450A-B035-E08AA0688592}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {20339E88-871B-4E4A-B1C2-6A1797AFDF9B}
+	EndGlobalSection
+EndGlobal

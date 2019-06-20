@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SmlInterpreter": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
