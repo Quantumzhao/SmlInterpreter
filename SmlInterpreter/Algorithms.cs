@@ -15,7 +15,6 @@ namespace SmlInterpreter
 
 	public static class Parse
 	{
-		public static Granule Current { get; set; } = null;
 		public static void ParseString(string[] source)
 		{
 			File file = File.ParseSource(source);
@@ -55,87 +54,123 @@ namespace SmlInterpreter
 	}
 	public static class SyntaxMarkUp
 	{
-		public static void Produce(Queue<string> source, int lineNumber)
+	}
+
+	public class Token : IClonable<Token>
+	{
+		protected Token() { }
+		public static Token Create(Queue<string> parsingObject)
 		{
-			while (source.Count != 0)
+			Token token;
+
+			string content = parsingObject.Dequeue();
+			if (!char.IsLetterOrDigit(content[0]))
 			{
-				string item = source.Dequeue();
-				if (!Group.IsBracket(item[0]))
+				char character = content[0];
+				switch (character)
 				{
-					Group.Current.Add(new Item(item, new LineNumber(lineNumber)));
+					/* possible metacharacters:
+					* ! Not			eg. !true == false
+					* ~ Range		eg. 0~9
+					* % Modulus		eg. 8 % 5 == 3
+					* * multiply	eg. 3 * 5 == 15
+					* - subtract	eg. 5 - 3 == 2, 3 - 5 == -2
+					* + Add			eg. 1 + 1 == 2
+					* = assignment	eg. x = 1;
+					* : Label		eg. Label1: Expression();, Expression({Label1: "1"});
+					* " string		eg. "Hello world"
+					* < smaller		eg. 3 < 5 == true
+					* > greater		eg. 5 > 3 == true
+					* / divide		eg. 4 / 2 == 2
+					* , seperator	eg. Expression(1, 2)
+					* . Accessor	eg. lineof(9).Label
+					*   double		eg. {a: 0.0}
+					* \ transcribe	eg. "\{Label1: \"1\"\}"
+					* _ array		eg. {arr_0: 1} (declaration), arr[0] = 2; (operation)
+					* ; xprsn end	eg. x = 1;
+					* += Add and Assignment
+					* -= Minus and Assignment
+					* <= smaller or equal to
+					* >= greater or equal to
+					* == is equal
+					* || or
+					* && and
+					*/
+					case '(':
+						break;
+
+					case ')':
+						break;
+
+					case '[':
+						break;
+
+					case ']':
+						break;
+
+					case '{':
+						break;
+
+					case '}':
+						break;
+
+					case '\"':
+						break;
+
+					case ';':
+						break;
+
+					//  # Pre-interpretation option. eg. #include <stdlib>
+					case '#':
+						
+						break;
+
+					// // Comment. eg. // Comment
+					case '/':
+						if (parsingObject.Peek()[0] == '/')
+						{
+							parsingObject.Dequeue();
+							token = Comment.Create(parsingObject);
+						}
+						break;
+
+					default:
+						break;
 				}
-				else
-				{
-					switch (item[0])
-					{
-						case '(':
-						case '[':
-						case '{':
-							Group group = new Group(item[0], new LineNumber(lineNumber));
-							Group.Current.Add(group);
-							Group.Current = group;
-							break;
-
-						default:
-							Group.Current = Group.Current.parent;
-							break;
-					}
-				}
 			}
+
+			throw new NotImplementedException();
 		}
 
-		public abstract class Particle
+		public string Content { get; set; }
+
+		public virtual Token Clone()
 		{
-			public Particle(LineNumber lineNo)
-			{
-				LineNo = lineNo;
-			}
-			public Group parent { get; set; }
-			public LineNumber LineNo { get; set; }
-		}
-
-		public class Item : Particle
-		{
-			public Item(string content, LineNumber lineNo) : base(lineNo)
-			{
-				Content = content;
-			}
-
-			public string Content { get; set; }
-		}
-
-		public class Group : Particle
-		{
-			public Group(char type, LineNumber lineNo) : base(lineNo)
-			{
-				Type = type;
-			}
-
-			public char Type { get; set; }
-			public static Group Current { get; set; } = new Group(' ', null);
-			public Queue<Particle> ParticleCollection { get; set; } = new Queue<Particle>();
-
-			public void Add(Particle particle)
-			{
-				particle.parent = this;
-				ParticleCollection.Enqueue(particle);
-			}
-
-			public static bool IsBracket(char character)
-			{
-				return
-					character == '(' ||
-					character == ')' ||
-					character == '[' ||
-					character == ']' ||
-					character == '{' ||
-					character == '}';
-			}
+			throw new NotImplementedException();
 		}
 	}
 
-	public class Token
+	public class Comment : Token
 	{
+		protected Comment() { }
 
+		public new static Comment Create(Queue<string> parsingObject)
+		{
+			StringBuilder builder = new StringBuilder();
+			while (parsingObject.Count != 0)
+			{
+				builder.Append(parsingObject.Dequeue());
+			}
+
+			return new Comment() { Content = builder.ToString() };
+		}
+
+		public readonly string Head = "//";
+		public new string Content { get; set; }
+	}
+
+	public class Procedure : Token
+	{
+		protected Procedure() { }
 	}
 }

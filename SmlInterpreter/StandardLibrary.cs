@@ -15,13 +15,6 @@ namespace SmlInterpreter
 	public class SmlBaseType
 	{
 		protected SmlBaseType() { }
-
-		public static SmlBaseType Create(LineNumber label)
-		{
-			return new SmlBaseType() { Label = label};
-		}
-
-		public LineNumber Label { get; set; }
 	}
 
 	public class SmlInt : SmlBaseType
