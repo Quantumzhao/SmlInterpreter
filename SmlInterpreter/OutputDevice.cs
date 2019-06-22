@@ -4,13 +4,13 @@ using System.Text;
 
 namespace SmlInterpreter
 {
-	public interface OutputDevice
+	public interface IOutputDevice
 	{
 		void WriteLine(string s);
 		void Write(string s);
 	}
 
-	public class IntegratedConsole : OutputDevice
+	public class IntegratedConsole : IOutputDevice
 	{
 		public void WriteLine(string s) => Console.WriteLine(s);
 		public void Write(string s) => Console.Write(s);

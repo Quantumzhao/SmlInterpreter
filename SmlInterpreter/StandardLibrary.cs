@@ -6,9 +6,10 @@ namespace SmlInterpreter
 {
 	public static class StandardLibrary
 	{
-		public static void print()
+		public static void print(string s)
 		{
-
+			IOutputDevice console = new IntegratedConsole();
+			console.WriteLine(s);
 		}
 	}
 
@@ -29,7 +30,13 @@ namespace SmlInterpreter
 
 	public class SmlBool : SmlBaseType
 	{
+		public SmlBool(bool value)
+		{
+			Value = value;
+		}
 
+		public readonly SmlTypes Type = SmlTypes.Bool;
+		public bool Value { get; set; }
 	}
 
 	public class SmlString : SmlBaseType
@@ -40,5 +47,15 @@ namespace SmlInterpreter
 	public class SmlArray : SmlBaseType
 	{
 
+	}
+
+	public enum SmlTypes
+	{
+		Integer,
+		Double,
+		Bool,
+		String,
+		Array,
+		Line
 	}
 }
