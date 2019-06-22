@@ -11,6 +11,13 @@ namespace SmlInterpreter
 		public ContinueQueue(string[] source)
 		{
 			this.source = source;
+			Queue<string> next = Parse.Segregate(source[currentLine]);
+			while (next.Count != 0)
+			{
+				Enqueue(next.Dequeue());
+			}
+
+			RemoveHeadingSpaces();
 		}
 
 		public new string Dequeue()
@@ -20,33 +27,47 @@ namespace SmlInterpreter
 
 		public string Dequeue(bool ignoreWhiteSpace)
 		{
-			if (ignoreWhiteSpace)
-			{
-				RemoveHeadingSpaces();
-			}
-
 			if (Count == 0)
 			{
 				if (currentLine != source.Length - 1)
 				{
-					Queue<string> next = Parse.Segregate(source[++currentLine]);
-					while (next.Count != 0)
-					{
-						Enqueue(next.Dequeue());
-					}
+					LoadMore();
 				}
 			}
 
-			return base.Dequeue();
+			string temp = base.Dequeue();
+
+			if (ignoreWhiteSpace && Count != 0)
+			{
+				RemoveHeadingSpaces();
+			}
+			else if (Count == 0)
+			{
+				LoadMore();
+			}
+
+			return temp;
 		}
 
-		public void RemoveHeadingSpaces()
+		private void RemoveHeadingSpaces()
 		{
-			string temp = Peek();
-			while (temp[0] == ' ' || temp[0] == '\t')
+			string peek = Peek();
+			while (peek[0] == ' ' || peek[0] == '\t')
 			{
-				Dequeue();
-				temp = Peek();
+				Dequeue(false);
+				peek = Peek();
+			}
+		}
+
+		private void LoadMore()
+		{
+			while (Count == 0)
+			{
+				Queue<string> next = Parse.Segregate(source[++currentLine]);
+				while (next.Count != 0)
+				{
+					Enqueue(next.Dequeue());
+				}
 			}
 		}
 	}

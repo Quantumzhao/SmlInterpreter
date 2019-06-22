@@ -171,24 +171,19 @@ namespace SmlInterpreter
 
 		public new static If_Procedure Create(ContinueQueue parsingObject)
 		{
-			parsingObject.RemoveHeadingSpaces();
 			If_Procedure prefab = new If_Procedure();
 
 			prefab.Head = Expression.Create(parsingObject);
 
-			parsingObject.RemoveHeadingSpaces();
 			// At this moment, the next string should be ")", then remove it
 			parsingObject.Dequeue();
 
-			parsingObject.RemoveHeadingSpaces();
 			// the next string should be "{", remove it
 			parsingObject.Dequeue();
 
-			parsingObject.RemoveHeadingSpaces();
 			while (parsingObject.Peek()[0] != '}')
 			{
 				prefab.Body.Add(Statement.Create(parsingObject));
-				parsingObject.RemoveHeadingSpaces();
 			}
 
 			return prefab;
@@ -221,17 +216,15 @@ namespace SmlInterpreter
 
 	public class Expression : Term
 	{
+		protected Expression() { }
 		public List<Expression> parameters { get; private set; } = new List<Expression>();
 		public string Name { get; protected set; }
 		public File DefinitionFile { get; private set; }
-		public new static Expression Create(ContinueQueue parsingObject)
+		public static Expression Create(ContinueQueue parsingObject, File definitionFile = null)
 		{
-			parsingObject.RemoveHeadingSpaces();
-
 			string termContent = parsingObject.Dequeue();
-			parsingObject.RemoveHeadingSpaces();
 
-			Expression prefab;
+			Expression prefab = null;
 
 			if (char.IsLetterOrDigit(termContent[0]))
 			// It is a function or variable, or numeric literal
@@ -242,8 +235,22 @@ namespace SmlInterpreter
 					if (parsingObject.Peek()[0] == '(')
 					// It is a function
 					{
+						parsingObject.Dequeue();
+
 						prefab = new Expression();
 						prefab.Name = termContent;
+
+						string next = parsingObject.Dequeue();
+						while (next[0] == ',')
+						{
+							prefab.parameters.Add(Expression.Create(parsingObject));
+							next = parsingObject.Dequeue();
+						}
+						if (next[0] == ')')
+						{
+							return prefab;
+						}
+
 					}
 					else
 					// It is a variable (declared)
@@ -275,7 +282,7 @@ namespace SmlInterpreter
 				}
 			}
 
-			throw new NotImplementedException();
+			return prefab;
 		}
 	}
 
