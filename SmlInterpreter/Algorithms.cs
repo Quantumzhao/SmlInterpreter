@@ -51,9 +51,18 @@ namespace SmlInterpreter
 
 			return segregation;
 		}
-	}
-	public static class SyntaxMarkUp
-	{
+
+		public static Queue<string> RemoveSucceedingSpaces(Queue<string> parsingObject)
+		{
+			string temp = parsingObject.Peek();
+			while (temp[0] == ' ' || temp[0] == '\t')
+			{
+				parsingObject.Dequeue();
+				temp = parsingObject.Peek();
+			}
+
+			return parsingObject;
+		}
 	}
 
 	public class Token : IClonable<Token>
@@ -61,7 +70,7 @@ namespace SmlInterpreter
 		protected Token() { }
 		public static Token Create(Queue<string> parsingObject)
 		{
-			Token token;
+			Token token = null;
 
 			string content = parsingObject.Dequeue();
 			if (!char.IsLetterOrDigit(content[0]))
@@ -80,6 +89,7 @@ namespace SmlInterpreter
 					* : Label		eg. Label1: Expression();, Expression({Label1: "1"});
 					* " string		eg. "Hello world"
 					* < smaller		eg. 3 < 5 == true
+					*   spcl char	eg. #include <stdlib>
 					* > greater		eg. 5 > 3 == true
 					* / divide		eg. 4 / 2 == 2
 					* , seperator	eg. Expression(1, 2)
@@ -96,29 +106,18 @@ namespace SmlInterpreter
 					* || or
 					* && and
 					*/
+
 					case '(':
+						token = Term.Create(parsingObject, '(');
 						break;
-
-					case ')':
-						break;
-
-					case '[':
-						break;
-
-					case ']':
-						break;
-
 					case '{':
-						break;
-
-					case '}':
 						break;
 
 					case '\"':
 						break;
 
 					case ';':
-						break;
+						return token;
 
 					//  # Pre-interpretation option. eg. #include <stdlib>
 					case '#':
@@ -131,6 +130,7 @@ namespace SmlInterpreter
 						{
 							parsingObject.Dequeue();
 							token = Comment.Create(parsingObject);
+							return token;
 						}
 						break;
 
@@ -138,11 +138,31 @@ namespace SmlInterpreter
 						break;
 				}
 			}
+			else
+			{
+				parsingObject = Parse.RemoveSucceedingSpaces(parsingObject);
+				string next = parsingObject.Dequeue();
+				if (char.IsLetterOrDigit(next[0]))
+				{
+					switch (next[0])
+					{
+						case '(':
+							token = Expression.Create(parsingObject, '(');
+							break;
+
+						case '[':
+							break;
+
+						default:
+							break;
+					}
+				}
+			}
 
 			throw new NotImplementedException();
 		}
 
-		public string Content { get; set; }
+		//public string Content { get; set; }
 
 		public virtual Token Clone()
 		{
@@ -166,11 +186,39 @@ namespace SmlInterpreter
 		}
 
 		public readonly string Head = "//";
-		public new string Content { get; set; }
+		public string Content { get; set; }
 	}
 
 	public class Procedure : Token
 	{
 		protected Procedure() { }
+		public new static Variable Create(Queue<string> parsingObject)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	public class Expression : Token
+	{
+		public static Variable Create(Queue<string> parsingObject, char head)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	public class Term : Expression
+	{
+		public new static Variable Create(Queue<string> parsingObject, char head)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	public class Variable : Term
+	{
+		public new static Variable Create(Queue<string> parsingObject)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
