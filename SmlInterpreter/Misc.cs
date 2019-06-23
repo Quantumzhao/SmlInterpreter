@@ -61,7 +61,7 @@ namespace SmlInterpreter
 
 		private void LoadMore()
 		{
-			while (Count == 0)
+			while (Count == 0 && currentLine != source.Length - 1)
 			{
 				Queue<string> next = Parse.Segregate(source[++currentLine]);
 				while (next.Count != 0)

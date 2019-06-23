@@ -7,9 +7,11 @@ namespace SmlInterpreter
 {
 	public static class InterpreterEntryPoint
 	{
+		public static File EntryFile { get; set; } = null;
 		public static void Execute(string[] source)
 		{
 			Parse.ParseString(source);
+			Parse.ExecuteFile();
 		}
 	}
 
@@ -17,7 +19,11 @@ namespace SmlInterpreter
 	{
 		public static void ParseString(string[] source)
 		{
-			File file = File.Create(source);
+			InterpreterEntryPoint.EntryFile = File.Create(source);
+		}
+		public static void ExecuteFile()
+		{
+			InterpreterEntryPoint.EntryFile.Execute();
 		}
 
 		public static Queue<string> Segregate(string source)

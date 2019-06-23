@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace SmlInterpreter
 {
@@ -28,6 +29,14 @@ namespace SmlInterpreter
 			}
 
 			return prefab;
+		}
+
+		public void Execute()
+		{
+			for (int i = 0; i < Tree.Count; i++)
+			{
+				Tree[i].Execute();
+			}
 		}
 	}
 
@@ -113,7 +122,7 @@ namespace SmlInterpreter
 				}
 			}
 
-			throw new NotImplementedException();
+			return token;
 		}
 
 		//public string Content { get; set; }
@@ -122,6 +131,8 @@ namespace SmlInterpreter
 		{
 			throw new NotImplementedException();
 		}
+
+		public abstract SmlBaseType Execute();
 	}
 
 	public class Comment : Token
@@ -139,6 +150,8 @@ namespace SmlInterpreter
 			return new Comment() { Content = builder.ToString() };
 		}
 
+		public override SmlBaseType Execute() => null;
+
 		public readonly string Head = "//";
 		public string Content { get; set; }
 	}
@@ -150,17 +163,7 @@ namespace SmlInterpreter
 		{
 			throw new NotImplementedException();
 		}
-		public List<Statement> Body { get; private set; }
-	}
-
-	public class Method : Procedure
-	{
-		protected Method() { }
-
-		public static new Method Create(ContinueQueue parsingObject)
-		{
-			throw new NotImplementedException();
-		}
+		public List<Statement> Body { get; private set; } = new List<Statement>();
 	}
 
 	public class If_Procedure : Procedure
@@ -181,12 +184,27 @@ namespace SmlInterpreter
 			// the next string should be "{", remove it
 			parsingObject.Dequeue();
 
-			while (parsingObject.Peek()[0] != '}')
+			while (parsingObject.Count != 0 && parsingObject.Peek() != "}")
 			{
 				prefab.Body.Add(Statement.Create(parsingObject));
+				// remove '}'
+				parsingObject.Dequeue();
 			}
 
 			return prefab;
+		}
+
+		public override SmlBaseType Execute()
+		{
+			if ((Head.Execute() as SmlBool).Data)
+			{
+				for (int i = 0; i < Body.Count; i++)
+				{
+					Body[i].Execute();
+				}
+			}
+
+			return null;
 		}
 	}
 
@@ -198,9 +216,17 @@ namespace SmlInterpreter
 		{
 			Statement prefab = new Statement();
 			prefab.Expression = Expression.Create(parsingObject);
-
+			// The next character should be ';', remove it
+			parsingObject.Dequeue();
 
 			return prefab;
+		}
+
+		public override SmlBaseType Execute()
+		{
+			Expression.Execute();
+
+			return null;
 		}
 
 		public Expression Expression { get; private set; }
@@ -232,7 +258,7 @@ namespace SmlInterpreter
 				if (char.IsLetter(termContent[0]))
 				// It is a variable or function
 				{
-					if (parsingObject.Peek()[0] == '(')
+					if (parsingObject.Peek() == "(")
 					// It is a function
 					{
 						parsingObject.Dequeue();
@@ -240,13 +266,14 @@ namespace SmlInterpreter
 						prefab = new Expression();
 						prefab.Name = termContent;
 
-						string next = parsingObject.Dequeue();
-						while (next[0] == ',')
+						string next;
+						do
 						{
 							prefab.parameters.Add(Expression.Create(parsingObject));
 							next = parsingObject.Dequeue();
-						}
-						if (next[0] == ')')
+						} while (next == ",");
+
+						if (next == ")")
 						{
 							return prefab;
 						}
@@ -270,11 +297,15 @@ namespace SmlInterpreter
 			}
 			else
 			{
-				switch (termContent[0])
+				switch (termContent)
 				{
-					case '(':
+					case "(":
 						// It is a term in the form of (Expression())
 						prefab = Expression.Create(parsingObject);
+						break;
+
+					case "\"":
+						prefab = FormatString.Create(parsingObject);
 						break;
 
 					default:
@@ -283,6 +314,21 @@ namespace SmlInterpreter
 			}
 
 			return prefab;
+		}
+
+		public override SmlBaseType Execute()
+		{
+			object ret = null;
+			if (DefinitionFile == null)
+			{
+				ret = typeof(StandardLibrary).GetMethod(Name)
+					.Invoke(null, parameters.Select(p => p.Execute()).ToArray());
+				return ret == null ? null : ret as SmlBaseType;
+			}
+			else
+			{
+				throw new NotImplementedException();
+			}
 		}
 	}
 
@@ -300,5 +346,56 @@ namespace SmlInterpreter
 		}
 
 		public SmlBaseType Value { get; private set; }
+
+		public override SmlBaseType Execute()
+		{
+			return Value;
+		}
+	}
+
+	public class FormatString : Expression
+	{
+		protected FormatString() { }
+
+		public new static FormatString Create(ContinueQueue parsingObject)
+		{
+			FormatString prefab = new FormatString();
+			string current = parsingObject.Dequeue(false);
+			int nameCounter = 0;
+			while (current != "\"")
+			{
+				Expression term;
+				if (current == "{")
+				{
+					term = Expression.Create(parsingObject);
+					prefab.Literals.Add(term);
+					// it should be removing character '}'
+					parsingObject.Dequeue();
+				}
+				else
+				{
+					prefab.Literals.Add(Variable.Create($"string{nameCounter}", new SmlString(current)));
+				}
+
+				current = parsingObject.Dequeue();
+				nameCounter++;
+			}
+
+			return prefab;
+		}
+
+		public List<Expression> Literals { get; private set; } = new List<Expression>();
+
+		public override SmlBaseType Execute()
+		{
+			StringBuilder builder = new StringBuilder();
+
+			for (int i = 0; i < Literals.Count; i++)
+			{
+				builder.Append(Literals[i].Execute().ToString());
+			}
+
+			return new SmlString(builder.ToString());
+		}
 	}
 }

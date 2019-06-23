@@ -9,9 +9,11 @@ namespace Test
 		[TestMethod]
 		public void TestMethod1()
 		{
-			using (StreamReader reader = new StreamReader("TestData1.txt"))
+			using (StreamReader reader = new StreamReader("../../../../SmlInterpreter/TestData1.txt"))
 			{
-				System.Console.WriteLine(reader.ReadLine());
+
+				var s = File.ReadAllText("../../../../SmlInterpreter/TestData1.txt");
+				char a = s[0];
 			}
 		}
 	}
