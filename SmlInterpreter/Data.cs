@@ -13,9 +13,10 @@ namespace SmlInterpreter
 
 	public class File
 	{
-		private static File prefab;
+		public static File prefab;
 		public List<Token> Tree = new List<Token>();
 		private string[] sourcecode;
+		public List<Line> Lines { get; set; } = new List<Line>();
 
 		public static File Create(string[] source)
 		{
@@ -38,6 +39,11 @@ namespace SmlInterpreter
 				Tree[i].Execute();
 			}
 		}
+	}
+
+	public class Line
+	{
+		public List<Token> Nodes { get; set; } = new List<Token>();
 	}
 
 	public abstract class Token : IClonable<Token>
@@ -125,14 +131,13 @@ namespace SmlInterpreter
 			return token;
 		}
 
-		//public string Content { get; set; }
-
 		public virtual Token Clone()
 		{
 			throw new NotImplementedException();
 		}
 
 		public abstract SmlBaseType Execute();
+
 	}
 
 	public class Comment : Token
@@ -208,6 +213,14 @@ namespace SmlInterpreter
 		}
 	}
 
+	public class Method : Procedure
+	{
+		public override SmlBaseType Execute()
+		{
+			throw new NotImplementedException();
+		}
+	}
+
 	public class Statement : Token
 	{
 		protected Statement() { }
@@ -266,7 +279,13 @@ namespace SmlInterpreter
 						prefab = new Expression();
 						prefab.Name = termContent;
 
-						string next;
+						string next = parsingObject.Peek();
+
+						if (next == ")")
+						{
+							return prefab;
+						}
+
 						do
 						{
 							prefab.parameters.Add(Expression.Create(parsingObject));
@@ -318,12 +337,9 @@ namespace SmlInterpreter
 
 		public override SmlBaseType Execute()
 		{
-			object ret = null;
 			if (DefinitionFile == null)
 			{
-				ret = typeof(StandardLibrary).GetMethod(Name)
-					.Invoke(null, parameters.Select(p => p.Execute()).ToArray());
-				return ret == null ? null : ret as SmlBaseType;
+				return StandardLibrary.Invoke(StandardLibrary.Access(nameof(StandardLibrary), Name), parameters);
 			}
 			else
 			{
@@ -345,7 +361,7 @@ namespace SmlInterpreter
 			return prefab;
 		}
 
-		public SmlBaseType Value { get; private set; }
+		public SmlBaseType Value { get; set; }
 
 		public override SmlBaseType Execute()
 		{
