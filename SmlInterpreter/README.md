@@ -154,7 +154,7 @@ After the execution, the code should look like this:
 
 ``` C++
 a := 1;
-delete codeof(Label1);
+delete codeof(a);
 ```
 
-> There's something worth noticing: `Label1` does not exist any more, so if this statement is executed again, an error will inevitably occur.
+> There's something worth noticing: `a` does not exist any more, so if this statement is executed again, an error will inevitably occur.
