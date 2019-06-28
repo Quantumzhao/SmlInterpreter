@@ -290,19 +290,11 @@ namespace SmlInterpreter
 							parsingObject.Dequeue();
 							return prefab;
 						}
+					}
+					else if (parsingObject.Peek() == ":")
+					{
 
-						//do
-						//{
-						//	prefab.parameters.Add(Expression.Create(parsingObject));
-						//	next = parsingObject.Dequeue();
-						//} while (next == ",");
-
-						//if (next == ")")
-						//{
-						//	return prefab;
-						//}
-
-					} 
+					}
 					else
 					// It is a variable (declared)
 					{

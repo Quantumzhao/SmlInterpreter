@@ -23,6 +23,7 @@ Keywords | Restrain | Meaning
 `include` | Global | by using this, the interpreter stores the referrence to the specified sml file
 `delete` | Global | deleting the specified code snippet (node)
 `null` | Global | null
+`readonly` | Global | marks a certain block of code to be read-only
 `last` | Regional | it is always used with an array to retrive the last element
 `current` | Regional | it is always used with `codeof()` function to retrive the current code snippet
 
@@ -46,8 +47,14 @@ Symbol | Signature | Name | Description
 
 - `~`
 - `\`
+- `_`
 
 ### Functions
+
+All of the pre-defined functions are defined in C# inside the `Standard Library` and `Math` classes. These are:
+
+**In Standard Library:**
+___
 
 #### print
 
@@ -90,6 +97,12 @@ Symbol | Signature | Name | Description
   *And hence, a variable in its very nature is a label and a literal.*
 
 #### Method Declaration
+
+#### File Declaraction
+
+Every *.sml* file can be parsed into a `File` object. The source code itself is a declaraction.
+
+> If some fields and methods of a *sml* file needs to be utilized in some code, just add `#include <`*fileName*`>` on top of the code.
 
 ### Label
 
