@@ -37,26 +37,17 @@ namespace SmlInterpreter
 			return method.Invoke(null, arguments.Select(p => p.Execute()).ToArray()) as SmlBaseType;
 		}
 
-		public static void Calc()
+		public static void Test()
 		{
-			var colorF = Console.ForegroundColor;
-			var colorB = Console.BackgroundColor;
-			var e = Console.OutputEncoding;
-
-			Console.OutputEncoding = Encoding.UTF7;
-			Console.ForegroundColor = ConsoleColor.Green;
-			Console.BackgroundColor = ConsoleColor.Black;
-
-			Console.WriteLine("Initializing...\n");
-			Console.WriteLine("ミク「Yさんのことはもう忘れたほうがいいと思います」\n");
-			Console.WriteLine("ルカ「相変わらず未練がましいな」\n");
-			Console.WriteLine("ジミ「諦めが悪いよ」\n");
-			Console.WriteLine("Calc. \n");
-			Console.WriteLine("ジミー「……(´・∀・｀)……」");
-
-			Console.OutputEncoding = e;
-			Console.ForegroundColor = colorF;
-			Console.BackgroundColor = colorB;
+			Console.WriteLine("Test() Success");
+		}
+		public static void Test2(SmlBaseType s1, SmlBaseType s2)
+		{
+			Console.WriteLine($"Test(,) Success {s1} {s2}");
+		}
+		public static void Test3(SmlBaseType s1, SmlBaseType s2, SmlBaseType s3)
+		{
+			Console.WriteLine($"Test(,,) Success {s1} {s2} {s3}");
 		}
 	}
 

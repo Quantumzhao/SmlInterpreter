@@ -16,7 +16,6 @@ namespace SmlInterpreter
 		public static File prefab;
 		public List<Token> Tree = new List<Token>();
 		private string[] sourcecode;
-		public List<Line> Lines { get; set; } = new List<Line>();
 
 		public static File Create(string[] source)
 		{
@@ -39,11 +38,6 @@ namespace SmlInterpreter
 				Tree[i].Execute();
 			}
 		}
-	}
-
-	public class Line
-	{
-		public List<Token> Nodes { get; set; } = new List<Token>();
 	}
 
 	public abstract class Token : IClonable<Token>
@@ -281,21 +275,32 @@ namespace SmlInterpreter
 
 						string next = parsingObject.Peek();
 
-						if (next == ")")
-						{
-							return prefab;
-						}
-
-						do
+						while (next != ")")
 						{
 							prefab.parameters.Add(Expression.Create(parsingObject));
-							next = parsingObject.Dequeue();
-						} while (next == ",");
+							next = parsingObject.Peek();
+							if (next == ",")
+							{
+								parsingObject.Dequeue();
+							}
+						}
 
 						if (next == ")")
 						{
+							parsingObject.Dequeue();
 							return prefab;
 						}
+
+						//do
+						//{
+						//	prefab.parameters.Add(Expression.Create(parsingObject));
+						//	next = parsingObject.Dequeue();
+						//} while (next == ",");
+
+						//if (next == ")")
+						//{
+						//	return prefab;
+						//}
 
 					}
 					else
@@ -413,5 +418,17 @@ namespace SmlInterpreter
 
 			return new SmlString(builder.ToString());
 		}
+	}
+
+	public class Label
+	{
+		public Label(Token attachedObject)
+		{
+			Labels.Add(attachedObject);
+		}
+
+		public static List<Token> Labels { get; set; } = new List<Token>();
+		
+		public string Name { get; set; }
 	}
 }

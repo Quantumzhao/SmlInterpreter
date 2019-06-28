@@ -14,10 +14,17 @@ ___
 
 ## Keywords
 
-Keyword | Restrains | Meaning
+Keywords | Restrain | Meaning
 --- | --- | ---
 `if` | Global | marking the beginning of the if-block
 `goto` | Global | jump to a specified code snippet
+`codeof` | Global | it is actually a special function which returns the specified code snippet
+`return` | Global | it returns the specified value
+`include` | Global | by using this, the interpreter stores the referrence to the specified sml file
+`delete` | Global | deleting the specified code snippet (node)
+`null` | Global | null
+`last` | Regional | it is always used with an array to retrive the last element
+`current` | Regional | it is always used with `codeof()` function to retrive the current code snippet
 
 ## Operators and Functions
 
@@ -126,7 +133,7 @@ Label1: if (true)
 {
     var := 0;
 }
-codeof(Label1).delete();
+delete codeof(Label1);
 ```
 
 In this case, this operation deletes the structure of `if` precedure itself, but not the statements inside it.
@@ -134,7 +141,7 @@ After the execution, the code should look like this:
 
 ``` C++
 a := 1;
-codeof(Label1).self.delete();
+delete codeof(Label1);
 ```
 
 > There's something worth noticing: `Label1` does not exist any more, so if this statement is executed again, an error will inevitably occur.

@@ -1,4 +1,4 @@
 ﻿if (true)
 {
-	print("Hello world");
+	Test3("hello", "world", "!");
 }
