@@ -302,7 +302,7 @@ namespace SmlInterpreter
 						//	return prefab;
 						//}
 
-					}
+					} 
 					else
 					// It is a variable (declared)
 					{
