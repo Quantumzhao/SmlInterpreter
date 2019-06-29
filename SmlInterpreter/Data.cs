@@ -125,6 +125,8 @@ namespace SmlInterpreter
 			return token;
 		}
 
+		public Label Label { get; set; } = null;
+
 		public virtual Token Clone()
 		{
 			throw new NotImplementedException();
@@ -414,13 +416,36 @@ namespace SmlInterpreter
 
 	public class Label
 	{
-		public Label(Token attachedObject)
+		protected Label() { }
+
+		public static Label Create(ContinueQueue parsingObject, Token parent, out string unusedFirstItem)
 		{
-			Labels.Add(attachedObject);
+			Label prefab = new Label();
+
+			string name = parsingObject.Dequeue();
+			if (!char.IsDigit(name[0]))
+			{
+				unusedFirstItem = name;
+				return null;
+			}
+			else if (parsingObject.Peek() == ":")
+			{
+				prefab.Parent = parent;
+				prefab.Name = name;
+				unusedFirstItem = null;
+				return prefab;
+			}
+			else
+			{
+				unusedFirstItem = name;
+				return null;
+			}
 		}
 
-		public static List<Token> Labels { get; set; } = new List<Token>();
+		public static List<Label> Labels { get; set; } = new List<Label>();
 		
+		public Token Parent { get; private set; }
+
 		public string Name { get; set; }
 	}
 }
