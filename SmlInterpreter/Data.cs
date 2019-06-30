@@ -136,7 +136,7 @@ namespace SmlInterpreter
 
 	}
 
-	public class Comment : Token
+	public class Comment : Statement
 	{
 		protected Comment() { }
 

@@ -71,4 +71,40 @@ namespace SmlInterpreter
 			}
 		}
 	}
+
+	public class CQueue
+	{
+		public CQueue(string[] source)
+		{
+			this.source = source;
+		}
+
+		private LinkedList<string> queue = new LinkedList<string>();
+		private string[] source;
+
+		public void Enqueue(string item)
+		{
+			queue.AddLast(item);
+		}
+
+		public string Dequeue()
+		{
+			string temp = queue.First.Value;
+			queue.Remove(queue.First);
+
+			return temp;
+		}
+
+		public string Peek(int index = 0)
+		{
+			LinkedListNode<string> temp = queue.First;
+			while (index != 0)
+			{
+				temp = temp.Next;
+				index--;
+			}
+
+			return temp.Value;
+		}
+	}
 }
