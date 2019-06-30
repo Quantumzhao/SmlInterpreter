@@ -106,6 +106,8 @@ Every *.sml* file can be parsed into a `File` object. The source code itself is 
 
 ### Label
 
+> Labels cannot begin with a number.
+
 The usage of label in variable declaration is just a special case among all of its usages.
 
 In fact a label can also be used in marking all kinds of code snippets, as listed:

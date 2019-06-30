@@ -45,6 +45,7 @@ namespace SmlInterpreter
 		protected Token() { }
 		public static Token Create(ContinueQueue parsingObject)
 		{
+			Label label = Label.Create(parsingObject);
 			Token token = null;
 
 			string content = parsingObject.Dequeue();
@@ -100,7 +101,7 @@ namespace SmlInterpreter
 						if (parsingObject.Peek()[0] == '/')
 						{
 							parsingObject.Dequeue();
-							token = Comment.Create(parsingObject);
+							token = Comment.Create(parsingObject, label);
 							return token;
 						}
 						break;
@@ -114,7 +115,7 @@ namespace SmlInterpreter
 				switch (content)
 				{
 					case "if":
-						token = If_Procedure.Create(parsingObject);
+						token = If_Procedure.Create(parsingObject, label);
 						break;
 
 					default:
@@ -140,7 +141,7 @@ namespace SmlInterpreter
 	{
 		protected Comment() { }
 
-		public new static Comment Create(ContinueQueue parsingObject)
+		public static Comment Create(ContinueQueue parsingObject, Label label)
 		{
 			StringBuilder builder = new StringBuilder();
 			while (parsingObject.Count != 0)
@@ -148,7 +149,7 @@ namespace SmlInterpreter
 				builder.Append(parsingObject.Dequeue());
 			}
 
-			return new Comment() { Content = builder.ToString() };
+			return new Comment() { Content = builder.ToString(), Label = label };
 		}
 
 		public override SmlBaseType Execute() => null;
@@ -173,11 +174,13 @@ namespace SmlInterpreter
 
 		public Term Head { get; private set; }
 
-		public new static If_Procedure Create(ContinueQueue parsingObject)
+		public static If_Procedure Create(ContinueQueue parsingObject, Label label)
 		{
 			If_Procedure prefab = new If_Procedure();
+			prefab.Label = label;
 
-			prefab.Head = Expression.Create(parsingObject);
+			Label headLabel = Label.Create(parsingObject);
+			prefab.Head = Expression.Create(parsingObject, headLabel);
 
 			// At this moment, the next string should be ")", then remove it
 			parsingObject.Dequeue();
@@ -187,7 +190,8 @@ namespace SmlInterpreter
 
 			while (parsingObject.Count != 0 && parsingObject.Peek() != "}")
 			{
-				prefab.Body.Add(Statement.Create(parsingObject));
+				Label bodyLabel = Label.Create(parsingObject);
+				prefab.Body.Add(Statement.Create(parsingObject, bodyLabel));
 				// remove '}'
 				parsingObject.Dequeue();
 			}
@@ -221,10 +225,12 @@ namespace SmlInterpreter
 	{
 		protected Statement() { }
 
-		public static new Statement Create(ContinueQueue parsingObject)
+		public static Statement Create(ContinueQueue parsingObject, Label label)
 		{
 			Statement prefab = new Statement();
-			prefab.Expression = Expression.Create(parsingObject);
+			prefab.Label = label;
+
+			prefab.Expression = Expression.Create(parsingObject, label);
 			// The next character should be ';', remove it
 			parsingObject.Dequeue();
 
@@ -255,7 +261,7 @@ namespace SmlInterpreter
 		public List<Expression> parameters { get; private set; } = new List<Expression>();
 		public string Name { get; protected set; }
 		public File DefinitionFile { get; private set; }
-		public static Expression Create(ContinueQueue parsingObject, File definitionFile = null)
+		public static Expression Create(ContinueQueue parsingObject, Label label, File definitionFile = null)
 		{
 			string termContent = parsingObject.Dequeue();
 
@@ -274,12 +280,14 @@ namespace SmlInterpreter
 
 						prefab = new Expression();
 						prefab.Name = termContent;
+						prefab.Label = label;
 
 						string next = parsingObject.Peek();
 
 						while (next != ")")
 						{
-							prefab.parameters.Add(Expression.Create(parsingObject));
+							Label paramLabel = Label.Create(parsingObject);
+							prefab.parameters.Add(Expression.Create(parsingObject, paramLabel));
 							next = parsingObject.Peek();
 							if (next == ",")
 							{
@@ -319,7 +327,7 @@ namespace SmlInterpreter
 				{
 					case "(":
 						// It is a term in the form of (Expression())
-						prefab = Expression.Create(parsingObject);
+						prefab = Expression.Create(parsingObject, null);
 						break;
 
 					case "\"":
@@ -382,7 +390,8 @@ namespace SmlInterpreter
 				Expression term;
 				if (current == "{")
 				{
-					term = Expression.Create(parsingObject);
+					Label label = Label.Create(parsingObject);
+					term = Expression.Create(parsingObject, label);
 					prefab.Literals.Add(term);
 					// it should be removing character '}'
 					parsingObject.Dequeue();
@@ -418,26 +427,20 @@ namespace SmlInterpreter
 	{
 		protected Label() { }
 
-		public static Label Create(ContinueQueue parsingObject, Token parent, out string unusedFirstItem)
+		public static Label Create(ContinueQueue parsingObject)
 		{
 			Label prefab = new Label();
 
-			string name = parsingObject.Dequeue();
-			if (!char.IsDigit(name[0]))
+			string name = parsingObject.Peek();
+			if (char.IsLetter(name[0]) && parsingObject.Peek(1) == ":")
 			{
-				unusedFirstItem = name;
-				return null;
-			}
-			else if (parsingObject.Peek() == ":")
-			{
-				prefab.Parent = parent;
 				prefab.Name = name;
-				unusedFirstItem = null;
+				parsingObject.Dequeue();
+				parsingObject.Dequeue();
 				return prefab;
 			}
 			else
 			{
-				unusedFirstItem = name;
 				return null;
 			}
 		}
