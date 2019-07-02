@@ -54,35 +54,6 @@ namespace SmlInterpreter
 				char character = content[0];
 				switch (character)
 				{
-					/* possible metacharacters:
-					* ! Not			eg. !true == false
-					* ~ Range		eg. 0~9
-					* % Modulus		eg. 8 % 5 == 3
-					* * multiply	eg. 3 * 5 == 15
-					* - subtract	eg. 5 - 3 == 2, 3 - 5 == -2
-					* + Add			eg. 1 + 1 == 2
-					* = assignment	eg. x = 1;
-					* : Label		eg. Label1: Expression();, Expression({Label1: "1"});
-					* " string		eg. "Hello world"
-					* < smaller		eg. 3 < 5 == true
-					*   spcl char	eg. #include <stdlib>
-					* > greater		eg. 5 > 3 == true
-					* / divide		eg. 4 / 2 == 2
-					* , seperator	eg. Expression(1, 2)
-					* . Accessor	eg. lineof(9).Label
-					*   double		eg. {a: 0.0}
-					* \ transcribe	eg. "{Label1: \"1\"}"
-					* _ array		eg. {arr_0: 1} (declaration), arr[0] = 2; (operation)
-					* ; xprsn end	eg. x = 1;
-					* += Add and Assignment
-					* -= Minus and Assignment
-					* <= smaller or equal to
-					* >= greater or equal to
-					* == is equal
-					* || or
-					* && and
-					*/
-
 					case '(':
 						break;
 					case '{':
@@ -141,7 +112,7 @@ namespace SmlInterpreter
 	{
 		protected Comment() { }
 
-		public static Comment Create(ContinueQueue parsingObject, Label label)
+		public static new Comment Create(ContinueQueue parsingObject, Label label)
 		{
 			StringBuilder builder = new StringBuilder();
 			while (parsingObject.Count != 0)
@@ -268,7 +239,7 @@ namespace SmlInterpreter
 			Expression prefab = null;
 
 			if (char.IsLetterOrDigit(termContent[0]))
-			// It is a function or variable, or numeric literal
+			// It is a not a meta character
 			{
 				if (char.IsLetter(termContent[0]))
 				// It is a variable or function
@@ -437,6 +408,9 @@ namespace SmlInterpreter
 				prefab.Name = name;
 				parsingObject.Dequeue();
 				parsingObject.Dequeue();
+
+				Labels.Add(prefab);
+
 				return prefab;
 			}
 			else

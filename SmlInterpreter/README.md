@@ -24,8 +24,11 @@ Keywords | Restrain | Meaning
 `delete` | Global | deleting the specified code snippet (node)
 `null` | Global | null
 `readonly` | Global | marks a certain block of code to be read-only
+`true` | Global | true
+`false` | Global | false
 `last` | Regional | it is always used with an array to retrive the last element
 `current` | Regional | it is always used with `codeof()` function to retrive the current code snippet
+`all` | Regional | it is always used with `codeof()` to retrive **all** of the current **code block**
 
 ## Operators and Functions
 
@@ -41,13 +44,33 @@ Symbol | Signature | Name | Description
 Symbol | Signature | Name | Description
 --- | --- | --- | ---
 `%` | `int %(int value1, value2)`, `int %(double value1, int value2)` | Modulus | eg. `5 % 3 == 2`, `5.5 % 3 == 2`
-`*` | `int -(int value)`, `double -(double value)` | Multiply | eg. `-1 + 1 == 0`
+`*` | `double *(double value1, double value2)` | Multiply | eg. `2 * 2 == 4`
+`+` | `double +(double value1, double value2)` | Add | eg. `1 + 1 == 2`
+`+` | `string +(string s1, string s2)` | Concatenate | eg. `"1" + "1" == "11"`
+`-` | `double -(double value1, double value2)` | Subtract | eg. `2 - 1 == 1`
+`/` | `int /(int value1, int value2)`, `double /(double value1, double value2)` | Division | eg. `4 / 2 == 2`
+`<=` | `bool <=(double value1, double value2)` | Smaller or equal to | eg. `1 <= 2 == true`
+`>=` | `bool >=(double value1, double value2)` | Greater or equal to | eg. `2 >= 1 == true`
+`==` | `bool ==(bool value1, bool value2)` | Is equal | eg. `true == true`
+`&&` | `bool &&(bool value1, bool value2)` | And | eg. `true && true == true`
+`||` | `bool ||(bool value1, bool value2)` | Or | eg. `true || false == true`
 
 ### Other meta characters
 
-- `~`
-- `\`
-- `_`
+Symbol | Description | Example
+--- | --- | ---
+`\` | It is used for transcription | `\"`, instead of `"`
+`_` | Array marker | `array_0` for the 0th element in an array
+`=` | Assignment | `x = 1`
+`:` | The label marker | `Fun1: Add(1, 2)` In this case, the function `Add(1, 2)` is labeled `Fun1`
+`"` | double quote | `"Hello world"`
+`>` & `<` | paren. used in `#include` | `#include <stdlib.sml>`
+`,` | seperator | `func(var1, var2) { }`
+`.` | accessor | `codeof(label).all`
+`;` | statement end marker | `Func();`
+
+- `(` and `)`
+- `{` and `}`
 
 ### Functions
 
@@ -160,3 +183,53 @@ delete codeof(a);
 ```
 
 > There's something worth noticing: `a` does not exist any more, so if this statement is executed again, an error will inevitably occur.
+
+### Array
+
+#### Declaraction
+
+Array in Neo is not really an object type. In fact, it exists to provide functionality to manipulate multiple logically correlated variables.
+
+Therefore, unlike many other languages, there is not need to declare an array: an array exists since the creation of its first element.
+
+An element in an array is consisted of three parts: **its name, _underscore character_ and subscript**.
+
+Any integer after `_` is considered the subscript.
+
+> eg. `array_0: 0`
+
+- In this example, it creates a new array named `array`, and initialize its first item to be `0`
+
+Note that Neo arrays have no limitation on length.
+
+When this array needs to have a second element, simply do this: `array_1: 0;` or of course, its equivalent: `array_1 := 0`
+
+Also, the subscription don't need to be successive. For example:
+
+``` C++
+array_0: 0;
+array_2: 0;
+```
+
+#### Manipulation
+
+Any element in an array can be retrieved by doing this:
+
+``` C++
+array_0 = 1;
+```
+
+Just use it like a normal variable.
+
+Another example:
+
+``` C++
+i := 0;
+For: if (i < 2){
+    array_i = i;
+    i++;
+    goto codeof(For);
+}
+```
+
+In this exampe, there is a for loop that sets the *n_th* element to the value of *n*.
