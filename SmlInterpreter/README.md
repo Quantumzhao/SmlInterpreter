@@ -186,7 +186,7 @@ delete codeof(a);
 
 ### Array
 
-#### Declaraction
+#### Array Declaration
 
 Array in Neo is not really an object type. In fact, it exists to provide functionality to manipulate multiple logically correlated variables.
 
@@ -213,7 +213,7 @@ array_2: 0;
 
 #### Manipulation
 
-Any element in an array can be retrieved by doing this:
+Any element in an array can be manipulated by doing this:
 
 ``` C++
 array_0 = 1;
