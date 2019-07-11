@@ -1,4 +1,4 @@
 ﻿Label1: if (true)
 {
-	Test3("hello", "world", "!");
+	Label2: Test3("hello", "world", "!");
 }

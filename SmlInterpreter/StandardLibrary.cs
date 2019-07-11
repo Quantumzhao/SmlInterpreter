@@ -126,8 +126,6 @@ namespace SmlInterpreter
 	public abstract class SmlBaseType
 	{
 		protected SmlBaseType() { }
-
-		public virtual object Data { get; set; }
 	}
 
 	public class SmlInt : SmlBaseType
@@ -137,7 +135,7 @@ namespace SmlInterpreter
 			Data = data;
 		}
 
-		public new int Data { get; set; }
+		public int Data { get; set; }
 	}
 
 	public class SmlDouble : SmlBaseType
@@ -147,7 +145,7 @@ namespace SmlInterpreter
 			Data = data;
 		}
 
-		public new double Data { get; set; }
+		public double Data { get; set; }
 	}
 
 	public class SmlBool : SmlBaseType
@@ -158,7 +156,7 @@ namespace SmlInterpreter
 		}
 
 		public readonly SmlTypes Type = SmlTypes.Bool;
-		public new bool Data { get; set; }
+		public bool Data { get; set; }
 	}
 
 	public class SmlString : SmlBaseType
@@ -168,7 +166,7 @@ namespace SmlInterpreter
 			Data = content;
 		}
 
-		public new string Data { get; set; }
+		public string Data { get; set; }
 
 		public override string ToString()
 		{

@@ -16,6 +16,8 @@ namespace SmlInterpreter
 		public static File prefab;
 		public List<Token> Tree = new List<Token>();
 		private string[] sourcecode;
+		public List<File> Referrences {get; private set; } = new List<File>();
+		public bool IsReadOnly { get; set; } = false;
 
 		public static File Create(string[] source)
 		{
@@ -60,11 +62,12 @@ namespace SmlInterpreter
 						break;
 
 					case '\"':
+						token = FormatString.Create(parsingObject);
 						break;
 
 					//  # Pre-interpretation option. eg. #include <stdlib>
 					case '#':
-
+						token = PreInterpretationStatement.Create(parsingObject);
 						break;
 
 					// // Comment. eg. // Comment
@@ -72,8 +75,7 @@ namespace SmlInterpreter
 						if (parsingObject.Peek()[0] == '/')
 						{
 							parsingObject.Dequeue();
-							token = Comment.Create(parsingObject, label);
-							return token;
+							token = Comment.Create(parsingObject);
 						}
 						break;
 
@@ -86,7 +88,7 @@ namespace SmlInterpreter
 				switch (content)
 				{
 					case "if":
-						token = If_Procedure.Create(parsingObject, label);
+						token = If_Procedure.Create(parsingObject);
 						break;
 
 					default:
@@ -94,10 +96,12 @@ namespace SmlInterpreter
 				}
 			}
 
+			token.Label = label;
 			return token;
 		}
 
 		public Label Label { get; set; } = null;
+		public Token Parent { get; set; } = null;
 
 		public virtual Token Clone()
 		{
@@ -112,15 +116,17 @@ namespace SmlInterpreter
 	{
 		protected Comment() { }
 
-		public static new Comment Create(ContinueQueue parsingObject, Label label)
+		public static new Comment Create(ContinueQueue parsingObject)
 		{
+			Label temp = Label.Create(parsingObject);
+
 			StringBuilder builder = new StringBuilder();
 			while (parsingObject.Count != 0)
 			{
 				builder.Append(parsingObject.Dequeue());
 			}
 
-			return new Comment() { Content = builder.ToString(), Label = label };
+			return new Comment() { Content = builder.ToString(), Label = temp };
 		}
 
 		public override SmlBaseType Execute() => null;
@@ -137,6 +143,7 @@ namespace SmlInterpreter
 			throw new NotImplementedException();
 		}
 		public List<Statement> Body { get; private set; } = new List<Statement>();
+		public List<Variable> LocalVariables { get; private set; } = new List<Variable>();
 	}
 
 	public class If_Procedure : Procedure
@@ -145,27 +152,36 @@ namespace SmlInterpreter
 
 		public Term Head { get; private set; }
 
-		public static If_Procedure Create(ContinueQueue parsingObject, Label label)
+		public new static If_Procedure Create(ContinueQueue parsingObject)
 		{
 			If_Procedure prefab = new If_Procedure();
-			prefab.Label = label;
 
 			Label headLabel = Label.Create(parsingObject);
-			prefab.Head = Expression.Create(parsingObject, headLabel);
 
-			// At this moment, the next string should be ")", then remove it
+			// This should be `(`
 			parsingObject.Dequeue();
+			prefab.Head = Expression.Create(parsingObject);
+			prefab.Head.Parent = prefab;
+			// This should be `)`
+			parsingObject.Dequeue();
+			prefab.Head.Label = headLabel;
 
 			// the next string should be "{", remove it
 			parsingObject.Dequeue();
 
-			while (parsingObject.Count != 0 && parsingObject.Peek() != "}")
+			while (parsingObject.Peek() != "}")
 			{
 				Label bodyLabel = Label.Create(parsingObject);
-				prefab.Body.Add(Statement.Create(parsingObject, bodyLabel));
-				// remove '}'
-				parsingObject.Dequeue();
+				var temp = Statement.Create(parsingObject);
+				temp.Parent = prefab;
+				temp.Label = bodyLabel;
+				temp.Expression.Label = bodyLabel;
+
+				prefab.Body.Add(temp);
 			}
+
+			// remove '}'
+			parsingObject.Dequeue();
 
 			return prefab;
 		}
@@ -186,6 +202,59 @@ namespace SmlInterpreter
 
 	public class Method : Procedure
 	{
+		public List<Variable> Parameters { get; private set; } = new List<Variable>();
+		public string Name { get; set; }
+
+		public new static Method Create(ContinueQueue parsingObject)
+		{
+			Method prefab = new Method();
+
+			prefab.Name = parsingObject.Dequeue();
+
+			// the next char should be `(`
+			parsingObject.Dequeue();
+
+			string next = parsingObject.Peek();
+
+			while (next != ")")
+			{
+				Label paramLabel = Label.Create(parsingObject);
+				var param = Variable.Create(parsingObject.Dequeue(), null);
+				param.Label = paramLabel;
+				prefab.Parameters.Add(param);
+				next = parsingObject.Peek();
+				if (next == ",")
+				{
+					parsingObject.Dequeue();
+				}
+			}
+
+			if (next == ")")
+			{
+				parsingObject.Dequeue();
+				return prefab;
+			}
+
+			// the next string should be "{", remove it
+			parsingObject.Dequeue();
+
+			while (parsingObject.Peek() != "}")
+			{
+				Label bodyLabel = Label.Create(parsingObject);
+				var temp = Statement.Create(parsingObject);
+				temp.Label = bodyLabel;
+				temp.Expression.Label = bodyLabel;
+
+				prefab.Body.Add(temp);
+			}
+
+			// remove '}'
+			parsingObject.Dequeue();
+
+			return prefab;
+
+		}
+
 		public override SmlBaseType Execute()
 		{
 			throw new NotImplementedException();
@@ -196,12 +265,16 @@ namespace SmlInterpreter
 	{
 		protected Statement() { }
 
-		public static Statement Create(ContinueQueue parsingObject, Label label)
+		public new static Statement Create(ContinueQueue parsingObject)
 		{
 			Statement prefab = new Statement();
-			prefab.Label = label;
 
-			prefab.Expression = Expression.Create(parsingObject, label);
+			Label label = Label.Create(parsingObject);
+			prefab.Expression = Expression.Create(parsingObject);
+			// A statement share the same label as its expression
+			prefab.Label = label;
+			prefab.Expression.Label = label;
+
 			// The next character should be ';', remove it
 			parsingObject.Dequeue();
 
@@ -232,7 +305,7 @@ namespace SmlInterpreter
 		public List<Expression> parameters { get; private set; } = new List<Expression>();
 		public string Name { get; protected set; }
 		public File DefinitionFile { get; private set; }
-		public static Expression Create(ContinueQueue parsingObject, Label label, File definitionFile = null)
+		public static Expression Create(ContinueQueue parsingObject, File definitionFile = null)
 		{
 			string termContent = parsingObject.Dequeue();
 
@@ -251,14 +324,15 @@ namespace SmlInterpreter
 
 						prefab = new Expression();
 						prefab.Name = termContent;
-						prefab.Label = label;
 
 						string next = parsingObject.Peek();
 
 						while (next != ")")
 						{
 							Label paramLabel = Label.Create(parsingObject);
-							prefab.parameters.Add(Expression.Create(parsingObject, paramLabel));
+							var exp = Expression.Create(parsingObject);
+							exp.Label = paramLabel;
+							prefab.parameters.Add(exp);
 							next = parsingObject.Peek();
 							if (next == ",")
 							{
@@ -271,10 +345,6 @@ namespace SmlInterpreter
 							parsingObject.Dequeue();
 							return prefab;
 						}
-					}
-					else if (parsingObject.Peek() == ":")
-					{
-
 					}
 					else
 					// It is a variable (declared)
@@ -298,11 +368,18 @@ namespace SmlInterpreter
 				{
 					case "(":
 						// It is a term in the form of (Expression())
+
+						Label termLabel = Label.Create(parsingObject);
 						prefab = Expression.Create(parsingObject, null);
+						prefab.Label = termLabel;
+						// Next char should be `)`
+						parsingObject.Dequeue();
 						break;
 
 					case "\"":
+						Label stringLabel = Label.Create(parsingObject);
 						prefab = FormatString.Create(parsingObject);
+						prefab.Label = stringLabel;
 						break;
 
 					default:
@@ -317,7 +394,13 @@ namespace SmlInterpreter
 		{
 			if (DefinitionFile == null)
 			{
-				return StandardLibrary.Invoke(StandardLibrary.Access(nameof(StandardLibrary), Name), parameters);
+				return StandardLibrary.Invoke(
+					StandardLibrary.Access(
+						nameof(StandardLibrary), 
+						Name
+					), 
+					parameters
+				);
 			}
 			else
 			{
@@ -362,7 +445,7 @@ namespace SmlInterpreter
 				if (current == "{")
 				{
 					Label label = Label.Create(parsingObject);
-					term = Expression.Create(parsingObject, label);
+					term = Expression.Create(parsingObject);
 					prefab.Literals.Add(term);
 					// it should be removing character '}'
 					parsingObject.Dequeue();
@@ -394,35 +477,92 @@ namespace SmlInterpreter
 		}
 	}
 
+	public class PreInterpretationStatement : Statement
+	{
+		protected PreInterpretationStatement() { }
+
+		public new static PreInterpretationStatement Create(ContinueQueue parsingObject)
+		{
+			PreInterpretationStatement prefab = new PreInterpretationStatement();
+
+			string next = parsingObject.Dequeue();
+			switch (next)
+			{
+				case "include":
+					prefab.CreateInclude(parsingObject);
+					break;
+
+				case "readonly":
+					File.prefab.IsReadOnly = true;
+					break;
+
+				default:
+					break;
+			}
+
+			return prefab;
+		}
+
+		private void CreateInclude(ContinueQueue parsingObject)
+		{
+			// The next character should be `<`
+			parsingObject.Dequeue();
+			File.prefab.Referrences.Add(File.Create(System.IO.File.ReadAllLines(parsingObject.Dequeue())));
+			// The next character should be `>`
+			parsingObject.Dequeue();
+		}
+	}
+
 	public class Label
 	{
 		protected Label() { }
 
+		/// <Summary>
+		/// Attempts to create a label and updates the `parsingObject` correspondingly
+		/// </Summary>
 		public static Label Create(ContinueQueue parsingObject)
 		{
 			Label prefab = new Label();
 
 			string name = parsingObject.Peek();
-			if (char.IsLetter(name[0]) && parsingObject.Peek(1) == ":")
+			if (char.IsLetter(name[0]))
+			// Check if it is a potential label
 			{
-				prefab.Name = name;
-				parsingObject.Dequeue();
-				parsingObject.Dequeue();
+				if (parsingObject.Peek(1) == "_")
+				// Handling `_` subscript
+				{
+					parsingObject.Dequeue();
+					prefab.Name.Subscript = Expression.Create(parsingObject);
+				}
+				else if (parsingObject.Peek(1) == ":")
+				// Handling normal cases
+				{
+					prefab.Name.Main = name;
+					prefab.Name.Subscript = null;
 
-				Labels.Add(prefab);
+					parsingObject.Dequeue();
+					parsingObject.Dequeue();
 
-				return prefab;
+					return prefab;
+				}
 			}
-			else
-			{
-				return null;
-			}
+
+			// It is not a label
+			return null;
 		}
 
 		public static List<Label> Labels { get; set; } = new List<Label>();
 		
 		public Token Parent { get; private set; }
 
-		public string Name { get; set; }
+		public LabelName Name { get; set; } = new LabelName();
+
+		public class LabelName
+		{
+			public string Main { get; set; }
+			public Expression Subscript { get; set; }
+
+			public string Literal => Main + (Subscript.Execute()?.ToString() ?? "");
+		}
 	}
 }

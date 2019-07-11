@@ -68,9 +68,8 @@ Symbol | Description | Example
 `,` | seperator | `func(var1, var2) { }`
 `.` | accessor | `codeof(label).all`
 `;` | statement end marker | `Func();`
-
-- `(` and `)`
-- `{` and `}`
+`)` & `(` | paren. | Too many examples
+`}` & `{` | paren. | Too many examples
 
 ### Functions
 
@@ -121,6 +120,19 @@ ___
 
 #### Method Declaration
 
+Since there is no explicit type system in this language, the return value is not required to be in cluded in the methoddeclaraction.
+
+A typical comlplete method definition looks like this:
+
+``` C++
+Func(var1, var2)
+{
+    // do something
+}
+```
+
+> If there is no `return` statement detected in method body, the return value by default is `null`
+
 #### File Declaraction
 
 Every *.sml* file can be parsed into a `File` object. The source code itself is a declaraction.
@@ -130,6 +142,8 @@ Every *.sml* file can be parsed into a `File` object. The source code itself is 
 ### Label
 
 > Labels cannot begin with a number.
+
+A label always labels the immediate succeeding element after it.
 
 The usage of label in variable declaration is just a special case among all of its usages.
 
@@ -150,6 +164,8 @@ In fact a label can also be used in marking all kinds of code snippets, as liste
   - Method
 
     - Function
+
+      > A label cannot be applied to the parameter list of a method. The head definition can only be accessed indirectly via *`<Method Label>`*`.Head`, because it is not recommended to do so.
 
     - Subprocedure
 
@@ -233,3 +249,36 @@ For: if (i < 2){
 ```
 
 In this exampe, there is a for loop that sets the *n_th* element to the value of *n*.
+
+#### goto
+
+Though it is not a favorable topic in many other languages, `goto` statement is essential in Neo. The grammar and syntax is basically the same as in *C*
+
+**However, `goto` statement can only be used within one subprocedure.**
+
+For example, please consider the following code snippet:
+
+``` C++
+if (true)
+{
+    Statement0();
+    Statement1();
+    goto Label2;
+}
+
+Label2: Statement2();
+```
+
+It is ungrammatical in Neo, since `goto` sattement jumps out of the `if` control block.But the following one is acceptable:
+
+``` C++
+if (true)
+{
+    toggle := true;
+    Label1: toggle = Function();
+    if (toggle)
+    {
+        goto Label1;
+    }
+}
+```
