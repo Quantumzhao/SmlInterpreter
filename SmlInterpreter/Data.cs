@@ -152,6 +152,8 @@ namespace SmlInterpreter
 
 		public Term Head { get; private set; }
 
+		private Else_Procedure Else = null;
+
 		public new static If_Procedure Create(ContinueQueue parsingObject)
 		{
 			If_Procedure prefab = new If_Procedure();
@@ -183,6 +185,8 @@ namespace SmlInterpreter
 			// remove '}'
 			parsingObject.Dequeue();
 
+			prefab.Else = Else_Procedure.Create(parsingObject);
+
 			return prefab;
 		}
 
@@ -195,8 +199,39 @@ namespace SmlInterpreter
 					Body[i].Execute();
 				}
 			}
+			else
+			{
+				Else?.Execute();
+			}
 
 			return null;
+		}
+
+		private class Else_Procedure : Procedure
+		{
+			private Else_Procedure() { }
+
+			public static Else_Procedure Create(ContinueQueue parsingObject)
+			{
+				Else_Procedure prefab = null;
+
+				if (parsingObject.Peek() == "else")
+				{
+
+				}
+
+				return prefab;
+			}
+
+			public override SmlBaseType Execute()
+			{
+				for (int i = 0; i < Body.Count; i++)
+				{
+					Body[i].Execute();
+				}
+
+				return null;
+			}
 		}
 	}
 
