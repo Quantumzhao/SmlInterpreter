@@ -23,9 +23,10 @@ namespace SmlInterpreter
 			return Type.GetType($"SmlInterpreter.{libName}").GetMethod(name);
 		}
 
-		public static void Assign(Variable variable, Expression expression)
+		public static SmlBaseType Assign(Variable variable, Expression expression)
 		{
 			variable.Value = expression.Execute();
+			return variable.Value;
 		}
 
 		public static SmlBaseType Invoke(Method method, List<Expression> arguments)

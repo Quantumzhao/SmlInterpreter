@@ -142,7 +142,7 @@ namespace SmlInterpreter
 		{
 			throw new NotImplementedException();
 		}
-		public List<Statement> Body { get; private set; } = new List<Statement>();
+		public List<Token> Body { get; private set; } = new List<Token>();
 		public List<Variable> LocalVariables { get; private set; } = new List<Variable>();
 	}
 
@@ -433,7 +433,7 @@ namespace SmlInterpreter
 					StandardLibrary.Access(
 						nameof(StandardLibrary), 
 						Name
-					), 
+					),
 					parameters
 				);
 			}
